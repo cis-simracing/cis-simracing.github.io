@@ -1,0 +1,65 @@
+<div class="gallery-container">
+    <!-- Page Header -->
+    <header class="gallery-header">
+        <span class="sub-badge">ARCHIVIO UFFICIALE</span>
+        <h1>Risultati & Galleria Gare</h1>
+        <p>Consulta le classifiche ufficiali, i podi e gli scatti salienti delle tappe CIS.</p>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filters-bar">
+        <button class="filter-btn" [class.active]="selectedGame === 'ALL'" (click)="setFilter('ALL')">
+            Tutti
+        </button>
+        <button class="filter-btn" [class.active]="selectedGame === 'EA WRC'" (click)="setFilter('EA WRC')">
+            EA WRC
+        </button>
+        <button class="filter-btn" [class.active]="selectedGame === 'Forza Motorsport'"
+            (click)="setFilter('Forza Motorsport')">
+            Forza Motorsport
+        </button>
+        <button class="filter-btn" [class.active]="selectedGame === 'MotoGP 26'" (click)="setFilter('MotoGP 26')">
+            MotoGP 26
+        </button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="gallery-grid" *ngIf="filteredItems.length > 0; else noItems">
+        <article *ngFor="let item of filteredItems" class="gallery-card" (click)="openModal(item)">
+            <div class="image-wrapper">
+                <img [src]="item.imageUrl" [alt]="item.title" loading="lazy" />
+                <div class="overlay">
+                    <span class="zoom-text">Ingrandisci 🔍</span>
+                </div>
+            </div>
+            <div class="card-details">
+                <div class="card-meta">
+                    <span class="game-tag">{{ item.game }}</span>
+                    <span class="item-date">{{ item.date }}</span>
+                </div>
+                <h3>{{ item.title }}</h3>
+                <p *ngIf="item.description">{{ item.description }}</p>
+            </div>
+        </article>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #noItems>
+        <div class="empty-state">
+            <p>Nessun risultato disponibile per questa categoria.</p>
+        </div>
+    </ng-template>
+
+    <!-- Image Lightbox Modal -->
+    <div class="modal-backdrop" *ngIf="selectedImage" (click)="closeModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <button class="btn-close" (click)="closeModal()" aria-label="Chiudi">&times;</button>
+            <img [src]="selectedImage.imageUrl" [alt]="selectedImage.title" />
+            <div class="modal-footer">
+                <h3>{{ selectedImage.title }}</h3>
+                <span class="modal-meta">{{ selectedImage.game }} &bull; {{ selectedImage.date }}</span>
+                <p *ngIf="selectedImage.description">{{ selectedImage.description }}</p>
+            </div>
+        </div>
+    </div>
+</div>

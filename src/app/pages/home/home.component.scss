@@ -1,0 +1,283 @@
+$color-bg: #0f172a;
+$color-surface: #1e293b;
+$color-surface-hover: #273549;
+$color-accent: #facc15;
+$color-text: #f8fafc;
+$color-text-muted: #94a3b8;
+$color-live: #ef4444;
+
+.home-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: $color-text;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, $color-surface 0%, #111c2e 100%);
+  border: 1px solid rgba(250, 204, 21, 0.15);
+  border-radius: 12px;
+  padding: 3.5rem 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  .hero-tag {
+    color: $color-accent;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin: 0.5rem 0 1rem;
+    line-height: 1.15;
+
+    .highlight {
+      color: $color-accent;
+    }
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: $color-text-muted;
+    max-width: 700px;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
+
+/* Section Common */
+.section-block {
+  margin-bottom: 3.5rem;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.75rem;
+
+    .section-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .link-more {
+      color: $color-accent;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+/* Pulse LIVE Icon */
+.pulse-icon {
+  width: 12px;
+  height: 12px;
+  background-color: $color-live;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Races Grid & Cards */
+.races-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.race-card {
+  background-color: $color-surface;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba(250, 204, 21, 0.4);
+  }
+
+  &.live-card {
+    border-left: 4px solid $color-live;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .game-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.badge-wrc {
+      background-color: #2563eb;
+      color: #fff;
+    }
+    &.badge-forza {
+      background-color: #059669;
+      color: #fff;
+    }
+    &.badge-motogp {
+      background-color: #d97706;
+      color: #fff;
+    }
+    &.badge-default {
+      background-color: #475569;
+      color: #fff;
+    }
+  }
+
+  .status-indicator {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: $color-live;
+
+    &.upcoming {
+      color: $color-accent;
+    }
+  }
+
+  .card-body {
+    flex-grow: 1;
+
+    .race-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+
+    .race-track {
+      font-size: 0.9rem;
+      color: $color-accent;
+      margin: 0 0 0.5rem;
+    }
+
+    .race-desc {
+      font-size: 0.85rem;
+      color: $color-text-muted;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+
+    .race-dates {
+      font-size: 0.8rem;
+      color: $color-text-muted;
+      margin-bottom: 1.25rem;
+    }
+  }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.full-width {
+    width: 100%;
+  }
+
+  &.btn-primary {
+    background-color: $color-accent;
+    color: #000;
+    &:hover {
+      background-color: #eab308;
+    }
+  }
+
+  &.btn-secondary {
+    background-color: $color-surface;
+    color: $color-text;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    &:hover {
+      background-color: $color-surface-hover;
+    }
+  }
+
+  &.btn-accent {
+    background-color: $color-accent;
+    color: #000;
+    &:hover {
+      background-color: #eab308;
+    }
+  }
+
+  &.btn-outline {
+    background-color: transparent;
+    color: $color-accent;
+    border: 1px solid $color-accent;
+    &:hover {
+      background-color: $color-accent;
+      color: #000;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding: 2rem 1.25rem;
+
+    .hero-title {
+      font-size: 1.8rem;
+    }
+  }
+}

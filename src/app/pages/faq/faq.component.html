@@ -1,0 +1,39 @@
+<div class="faq-container">
+    <header class="faq-header">
+        <span class="sub-badge">GUIDA & SUPPORTO</span>
+        <h1>FAQ & Regolamento</h1>
+        <p>Tutto quello che c'è da sapere su iscrizioni, condotta in gara e requisiti tecnici.</p>
+    </header>
+
+    <!-- Category Filter -->
+    <div class="filter-tabs">
+        <button class="tab-btn" [class.active]="selectedCategory === 'ALL'" (click)="setCategory('ALL')">Tutte</button>
+        <button class="tab-btn" [class.active]="selectedCategory === 'iscrizioni'"
+            (click)="setCategory('iscrizioni')">Iscrizioni</button>
+        <button class="tab-btn" [class.active]="selectedCategory === 'regolamento'"
+            (click)="setCategory('regolamento')">Regolamento</button>
+        <button class="tab-btn" [class.active]="selectedCategory === 'hardware'"
+            (click)="setCategory('hardware')">Hardware / Piattaforme</button>
+    </div>
+
+    <!-- Accordion List -->
+    <div class="accordion-list">
+        <div *ngFor="let faq of filteredFaqs" class="accordion-item" [class.open]="faq.isOpen">
+
+            <button class="accordion-header" (click)="toggleFaq(faq)">
+                <span class="question-text">{{ faq.question }}</span>
+                <span class="chevron">{{ faq.isOpen ? '−' : '+' }}</span>
+            </button>
+
+            <div class="accordion-body" *ngIf="faq.isOpen">
+                <p>{{ faq.answer }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Still have questions? -->
+    <div class="support-box">
+        <h3>Hai altre domande o vuoi segnalare un incidente di gara?</h3>
+        <p>Contatta direttamente uno dei commissari o amministratori sul nostro canale Discord.</p>
+    </div>
+</div>

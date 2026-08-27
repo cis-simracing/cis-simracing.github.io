@@ -1,0 +1,89 @@
+<div class="home-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="hero-tag">CAMPIONATO ITALIANO SIMRACING</span>
+            <h1 class="hero-title">BENVENUTO NEL CENTRO COMANDO <span class="highlight">CIS</span></h1>
+            <p class="hero-subtitle">
+                L'hub ufficiale della nostra community per seguire campionati, classifiche, calendari e iscrizioni su EA
+                WRC, Forza Motorsport e MotoGP 26.
+            </p>
+            <div class="hero-actions">
+                <a routerLink="/races" class="btn btn-primary">Tutti i Campionati</a>
+                <a routerLink="/gallery" class="btn btn-secondary">Risultati & Foto</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live / Ongoing Races Section -->
+    <section class="section-block">
+        <div class="section-header">
+            <div class="section-title-group">
+                <span class="pulse-icon"></span>
+                <h2>Gare in Corso (LIVE)</h2>
+            </div>
+            <a routerLink="/races" class="link-more">Vedi tutte &rarr;</a>
+        </div>
+
+        <div class="races-grid" *ngIf="ongoingRaces$ | async as races">
+            <article *ngFor="let race of races" class="race-card live-card">
+                <div class="card-header">
+                    <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
+                    <span class="status-indicator">IN CORSO</span>
+                </div>
+
+                <div class="card-body">
+                    <h3 class="race-title">{{ race.title }}</h3>
+                    <p class="race-track" *ngIf="race.trackName">
+                        <strong>Tracciato:</strong> {{ race.trackName }}
+                    </p>
+                    <p class="race-desc">{{ race.description }}</p>
+                    <div class="race-dates">
+                        <span>Periodo: {{ race.startDate }} &rarr; {{ race.endDate }}</span>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
+                        rel="noopener noreferrer" class="btn btn-accent full-width">
+                        Modulo Iscrizione (Google Form)
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Upcoming Races Section -->
+    <section class="section-block">
+        <div class="section-header">
+            <h2>Prossimi Eventi in Arrivo</h2>
+        </div>
+
+        <div class="races-grid" *ngIf="upcomingRaces$ | async as races">
+            <article *ngFor="let race of races" class="race-card">
+                <div class="card-header">
+                    <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
+                    <span class="status-indicator upcoming">IN ARRIVO</span>
+                </div>
+
+                <div class="card-body">
+                    <h3 class="race-title">{{ race.title }}</h3>
+                    <p class="race-track" *ngIf="race.trackName">
+                        <strong>Tracciato:</strong> {{ race.trackName }}
+                    </p>
+                    <p class="race-desc">{{ race.description }}</p>
+                    <div class="race-dates">
+                        <span>Data Inizio: {{ race.startDate }}</span>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
+                        rel="noopener noreferrer" class="btn btn-outline full-width">
+                        Pre-Iscriviti
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+</div>

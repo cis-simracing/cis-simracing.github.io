@@ -1,0 +1,133 @@
+<div class="admin-container">
+    <!-- Schermata di Login se non autenticato -->
+    <ng-container *ngIf="(user$ | async) === null; else dashboard">
+        <div class="login-card">
+            <div class="login-header">
+                <span class="badge-staff">AREA RISERVATA</span>
+                <h2>Login Staff CIS</h2>
+                <p>Accedi con il tuo account amministratore per gestire gare e risultati.</p>
+            </div>
+
+            <form (ngSubmit)="onLogin()" class="form-layout">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" [(ngModel)]="email" name="email" required
+                        placeholder="admin@cis-racing.it" />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" [(ngModel)]="password" name="password" required
+                        placeholder="••••••••" />
+                </div>
+
+                <p class="error-msg" *ngIf="loginError">{{ loginError }}</p>
+
+                <button type="submit" class="btn btn-accent full-width">Accedi al Pannello</button>
+            </form>
+        </div>
+    </ng-container>
+
+    <!-- Dashboard Admin se autenticato -->
+    <ng-template #dashboard>
+        <div class="dashboard-wrapper">
+            <div class="dashboard-header">
+                <div>
+                    <span class="badge-staff">PANNELLO DI CONTROLLO</span>
+                    <h1>Pubblica Gara o Risultato</h1>
+                </div>
+                <button (click)="onLogout()" class="btn btn-logout">Disconnetti</button>
+            </div>
+
+            <div class="alerts" *ngIf="successMessage || errorMessage">
+                <p class="alert-success" *ngIf="successMessage">{{ successMessage }}</p>
+                <p class="alert-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+            </div>
+
+            <form (ngSubmit)="onSubmit()" class="admin-form">
+                <!-- Riquadro Dati Base -->
+                <div class="form-section">
+                    <h3>1. Dettagli Evento</h3>
+
+                    <div class="form-row">
+                        <div class="form-group flex-2">
+                            <label for="title">Titolo Evento / Tappa *</label>
+                            <input type="text" id="title" [(ngModel)]="newRace.title" name="title" required
+                                placeholder="es. Rally di Monte Carlo - Tappa 1" />
+                        </div>
+
+                        <div class="form-group flex-1">
+                            <label for="game">Campionato / Gioco *</label>
+                            <select id="game" [(ngModel)]="newRace.game" name="game" required>
+                                <option value="EA WRC">EA WRC</option>
+                                <option value="Forza Motorsport">Forza Motorsport</option>
+                                <option value="MotoGP 26">MotoGP 26</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="status">Stato Gara *</label>
+                            <select id="status" [(ngModel)]="newRace.status" name="status" required>
+                                <option value="upcoming">In Arrivo (Iscrizioni)</option>
+                                <option value="ongoing">In Corso (LIVE)</option>
+                                <option value="completed">Conclusa (Risultati)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group flex-2">
+                            <label for="trackName">Tracciato / Location</label>
+                            <input type="text" id="trackName" [(ngModel)]="newRace.trackName" name="trackName"
+                                placeholder="es. Col de Turini / Mugello Circuit" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Data Inizio *</label>
+                            <input type="date" id="startDate" [(ngModel)]="newRace.startDate" name="startDate"
+                                required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endDate">Data Fine (Opzionale)</label>
+                            <input type="date" id="endDate" [(ngModel)]="newRace.endDate" name="endDate" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registrationUrl">Link Modulo Iscrizione (Google Form)</label>
+                        <input type="url" id="registrationUrl" [(ngModel)]="newRace.registrationUrl"
+                            name="registrationUrl" placeholder="https://forms.google.com/..." />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Descrizione / Regolamento Tappa</label>
+                        <textarea id="description" [(ngModel)]="newRace.description" name="description" rows="3"
+                            placeholder="Note per i piloti, meteo previsto, restrizioni auto..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Riquadro Foto / Risultati ImgBB -->
+                <div class="form-section">
+                    <h3>2. Immagine Risultati / Podio (ImgBB Upload)</h3>
+
+                    <div class="form-group">
+                        <label for="imageFile">Seleziona Screenshot Classifica o Foto Evento</label>
+                        <input type="file" id="imageFile" (change)="onFileSelected($event)" accept="image/*" />
+                    </div>
+
+                    <div class="preview-box" *ngIf="imagePreview">
+                        <p>Anteprima Immagine:</p>
+                        <img [src]="imagePreview" alt="Anteprima upload" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-submit" [disabled]="isUploading">
+                    {{ isUploading ? 'Caricamento in corso...' : 'Salva e Pubblica' }}
+                </button>
+            </form>
+        </div>
+    </ng-template>
+</div>
