@@ -1,16 +1,16 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, NgZone, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  Auth,
+  User,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  user,
-  User,
-} from '@angular/fire/auth';
-// Importati direttamente da 'firebase/auth' per evitare il wrapper Zone di @angular/fire su browserSessionPersistence
-import { setPersistence, browserSessionPersistence } from 'firebase/auth';
+  setPersistence,
+  browserSessionPersistence,
+} from 'firebase/auth';
 import { Observable, firstValueFrom, map } from 'rxjs';
+import { firebaseAuth } from '../../firebase';
 import { ImageUploadService } from '../../services/image-upload.service';
 import { RaceService } from '../../services/race.service';
 import { Race, RaceStatus } from '../../models/race.model';
@@ -24,11 +24,19 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./admin.component.scss'],
 })
 export class AdminComponent implements OnInit {
-  private auth = inject(Auth);
+  private ngZone = inject(NgZone);
   private imageUploadService = inject(ImageUploadService);
   private raceService = inject(RaceService);
 
-  user$: Observable<User | null> = user(this.auth);
+  // Stream reattivo dello stato autenticazione Firebase
+  user$: Observable<User | null> = new Observable<User | null>((subscriber) => {
+    const unsubscribe = onAuthStateChanged(
+      firebaseAuth,
+      (u) => this.ngZone.run(() => subscriber.next(u)),
+      (err) => this.ngZone.run(() => subscriber.error(err)),
+    );
+    return () => unsubscribe();
+  });
   races$!: Observable<Race[]>;
 
   // Credenziali Login
@@ -65,9 +73,9 @@ export class AdminComponent implements OnInit {
     const cleanEmail = this.email.trim();
     try {
       // Imposta la sessione valida solo fino alla chiusura della scheda/finestra
-      await setPersistence(this.auth, browserSessionPersistence);
+      await setPersistence(firebaseAuth, browserSessionPersistence);
 
-      await signInWithEmailAndPassword(this.auth, cleanEmail, this.password);
+      await signInWithEmailAndPassword(firebaseAuth, cleanEmail, this.password);
     } catch (err: any) {
       console.error('Dettaglio errore login Firebase:', err);
       const code = err?.code || 'errore-sconosciuto';
@@ -90,7 +98,7 @@ export class AdminComponent implements OnInit {
   }
 
   async onLogout(): Promise<void> {
-    await signOut(this.auth);
+    await signOut(firebaseAuth);
   }
 
   // Gestione File Immagine

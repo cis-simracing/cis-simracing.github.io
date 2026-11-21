@@ -1,0 +1,12 @@
+// Inizializzazione centralizzata dell'SDK Firebase modulare (evita problemi di ordine DI di @angular/fire)
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { environment } from '../environments/environment';
+
+export const firebaseApp = getApps().length
+  ? getApp()
+  : initializeApp(environment.firebase);
+
+export const firebaseAuth = getAuth(firebaseApp);
+export const firebaseDb = getFirestore(firebaseApp);
