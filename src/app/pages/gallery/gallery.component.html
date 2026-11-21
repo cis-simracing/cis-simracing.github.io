@@ -8,56 +8,58 @@
 
     <!-- Filter Bar -->
     <div class="filters-bar">
-        <button class="filter-btn" [class.active]="selectedGame === 'ALL'" (click)="setFilter('ALL')">
+        <button class="filter-btn" [class.active]="currentSelectedGame === 'ALL'" (click)="setFilter('ALL')">
             Tutti
         </button>
-        <button class="filter-btn" [class.active]="selectedGame === 'EA WRC'" (click)="setFilter('EA WRC')">
+        <button class="filter-btn" [class.active]="currentSelectedGame === 'EA WRC'" (click)="setFilter('EA WRC')">
             EA WRC
         </button>
-        <button class="filter-btn" [class.active]="selectedGame === 'Forza Motorsport'"
+        <button class="filter-btn" [class.active]="currentSelectedGame === 'Forza Motorsport'"
             (click)="setFilter('Forza Motorsport')">
             Forza Motorsport
         </button>
-        <button class="filter-btn" [class.active]="selectedGame === 'MotoGP 26'" (click)="setFilter('MotoGP 26')">
+        <button class="filter-btn" [class.active]="currentSelectedGame === 'MotoGP 26'" (click)="setFilter('MotoGP 26')">
             MotoGP 26
         </button>
     </div>
 
     <!-- Gallery Grid -->
-    <div class="gallery-grid" *ngIf="filteredItems.length > 0; else noItems">
-        <article *ngFor="let item of filteredItems" class="gallery-card" (click)="openModal(item)">
-            <div class="image-wrapper">
-                <img [src]="item.imageUrl" [alt]="item.title" loading="lazy" />
-                <div class="overlay">
-                    <span class="zoom-text">Ingrandisci 🔍</span>
+    <ng-container *ngIf="filteredItems$ | async as items">
+        <div class="gallery-grid" *ngIf="items.length > 0; else noItems">
+            <article *ngFor="let item of items" class="gallery-card" (click)="openModal(item)">
+                <div class="image-wrapper">
+                    <img [src]="item.resultsImageUrl" [alt]="item.title" loading="lazy" />
+                    <div class="overlay">
+                        <span class="zoom-text">Ingrandisci 🔍</span>
+                    </div>
                 </div>
-            </div>
-            <div class="card-details">
-                <div class="card-meta">
-                    <span class="game-tag">{{ item.game }}</span>
-                    <span class="item-date">{{ item.date }}</span>
+                <div class="card-details">
+                    <div class="card-meta">
+                        <span class="game-tag">{{ item.game }}</span>
+                        <span class="item-date">{{ item.startDate }}</span>
+                    </div>
+                    <h3>{{ item.title }}</h3>
+                    <p *ngIf="item.description">{{ item.description }}</p>
                 </div>
-                <h3>{{ item.title }}</h3>
-                <p *ngIf="item.description">{{ item.description }}</p>
-            </div>
-        </article>
-    </div>
-
-    <!-- Empty State -->
-    <ng-template #noItems>
-        <div class="empty-state">
-            <p>Nessun risultato disponibile per questa categoria.</p>
+            </article>
         </div>
-    </ng-template>
+
+        <!-- Empty State -->
+        <ng-template #noItems>
+            <div class="empty-state">
+                <p>Nessun risultato disponibile per questa categoria.</p>
+            </div>
+        </ng-template>
+    </ng-container>
 
     <!-- Image Lightbox Modal -->
     <div class="modal-backdrop" *ngIf="selectedImage" (click)="closeModal()">
         <div class="modal-content" (click)="$event.stopPropagation()">
             <button class="btn-close" (click)="closeModal()" aria-label="Chiudi">&times;</button>
-            <img [src]="selectedImage.imageUrl" [alt]="selectedImage.title" />
+            <img [src]="selectedImage.resultsImageUrl" [alt]="selectedImage.title" />
             <div class="modal-footer">
                 <h3>{{ selectedImage.title }}</h3>
-                <span class="modal-meta">{{ selectedImage.game }} &bull; {{ selectedImage.date }}</span>
+                <span class="modal-meta">{{ selectedImage.game }} &bull; {{ selectedImage.startDate }}</span>
                 <p *ngIf="selectedImage.description">{{ selectedImage.description }}</p>
             </div>
         </div>

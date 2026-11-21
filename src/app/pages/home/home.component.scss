@@ -272,6 +272,15 @@ $color-live: #ef4444;
   }
 }
 
+.empty-section {
+  background-color: $color-surface;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  color: $color-text-muted;
+}
+
 @media (max-width: 640px) {
   .hero-section {
     padding: 2rem 1.25rem;

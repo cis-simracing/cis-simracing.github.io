@@ -1,15 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameType } from '../../models/race.model';
-
-export interface GalleryItem {
-  id: string;
-  title: string;
-  game: GameType;
-  date: string;
-  imageUrl: string;
-  description?: string;
-}
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Race } from '../../models/race.model';
+import { RaceService } from '../../services/race.service';
 
 @Component({
   selector: 'app-gallery',
@@ -18,54 +12,36 @@ export interface GalleryItem {
   templateUrl: './gallery.component.html',
   styleUrls: ['./gallery.component.scss'],
 })
-export class GalleryComponent {
-  selectedGame: string = 'ALL';
-  selectedImage: GalleryItem | null = null;
+export class GalleryComponent implements OnInit {
+  private raceService = inject(RaceService);
 
-  // Dati mockup di anteprima (verranno poi sincronizzati con Firestore/ImgBB)
-  galleryItems: GalleryItem[] = [
-    {
-      id: '1',
-      title: 'Classifica Ufficiale - Rally di Svezia',
-      game: 'EA WRC',
-      date: '2026-08-20',
-      imageUrl:
-        'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80',
-      description: 'Tempi finali e classifica assoluta dopo la Power Stage.',
-    },
-    {
-      id: '2',
-      title: 'Podio Finale - 6H Le Mans Endurance',
-      game: 'Forza Motorsport',
-      date: '2026-08-15',
-      imageUrl:
-        'https://images.unsplash.com/photo-1541348263662-e0c8de4259ba?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'I primi tre equipaggi classificati nella categoria Hypercar.',
-    },
-    {
-      id: '3',
-      title: 'Ordine di Arrivo - GP del Mugello',
-      game: 'MotoGP 26',
-      date: '2026-08-10',
-      imageUrl:
-        'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80',
-      description: 'Risultati di gara con distacchi e giro veloce.',
-    },
-  ];
+  private selectedGame$ = new BehaviorSubject<string>('ALL');
+  currentSelectedGame = 'ALL';
+  selectedImage: Race | null = null;
 
-  get filteredItems(): GalleryItem[] {
-    if (this.selectedGame === 'ALL') {
-      return this.galleryItems;
-    }
-    return this.galleryItems.filter((item) => item.game === this.selectedGame);
+  filteredItems$!: Observable<Race[]>;
+
+  ngOnInit(): void {
+    this.filteredItems$ = combineLatest([
+      this.raceService.getAllRaces(),
+      this.selectedGame$,
+    ]).pipe(
+      map(([races, filter]) =>
+        races
+          // Mostra solo le gare che hanno un'immagine risultati caricata
+          .filter((r) => !!r.resultsImageUrl)
+          .filter((r) => filter === 'ALL' || r.game === filter)
+          .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+      ),
+    );
   }
 
   setFilter(game: string): void {
-    this.selectedGame = game;
+    this.currentSelectedGame = game;
+    this.selectedGame$.next(game);
   }
 
-  openModal(item: GalleryItem): void {
+  openModal(item: Race): void {
     this.selectedImage = item;
   }
 

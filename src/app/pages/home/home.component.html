@@ -25,32 +25,39 @@
             <a routerLink="/races" class="link-more">Vedi tutte &rarr;</a>
         </div>
 
-        <div class="races-grid" *ngIf="ongoingRaces$ | async as races">
-            <article *ngFor="let race of races" class="race-card live-card">
-                <div class="card-header">
-                    <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
-                    <span class="status-indicator">IN CORSO</span>
-                </div>
-
-                <div class="card-body">
-                    <h3 class="race-title">{{ race.title }}</h3>
-                    <p class="race-track" *ngIf="race.trackName">
-                        <strong>Tracciato:</strong> {{ race.trackName }}
-                    </p>
-                    <p class="race-desc">{{ race.description }}</p>
-                    <div class="race-dates">
-                        <span>Periodo: {{ race.startDate }} &rarr; {{ race.endDate }}</span>
+        <ng-container *ngIf="ongoingRaces$ | async as races">
+            <div class="races-grid" *ngIf="races.length > 0; else noOngoing">
+                <article *ngFor="let race of races" class="race-card live-card">
+                    <div class="card-header">
+                        <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
+                        <span class="status-indicator">IN CORSO</span>
                     </div>
-                </div>
 
-                <div class="card-footer">
-                    <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
-                        rel="noopener noreferrer" class="btn btn-accent full-width">
-                        Modulo Iscrizione (Google Form)
-                    </a>
+                    <div class="card-body">
+                        <h3 class="race-title">{{ race.title }}</h3>
+                        <p class="race-track" *ngIf="race.trackName">
+                            <strong>Tracciato:</strong> {{ race.trackName }}
+                        </p>
+                        <p class="race-desc">{{ race.description }}</p>
+                        <div class="race-dates">
+                            <span>Periodo: {{ race.startDate }} <ng-container *ngIf="race.endDate">&rarr; {{ race.endDate }}</ng-container></span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
+                            rel="noopener noreferrer" class="btn btn-accent full-width">
+                            Modulo Iscrizione (Google Form)
+                        </a>
+                    </div>
+                </article>
+            </div>
+            <ng-template #noOngoing>
+                <div class="empty-section">
+                    <p>Nessuna gara attualmente in corso. Controlla i prossimi eventi o il calendario completo.</p>
                 </div>
-            </article>
-        </div>
+            </ng-template>
+        </ng-container>
     </section>
 
     <!-- Upcoming Races Section -->
@@ -59,31 +66,38 @@
             <h2>Prossimi Eventi in Arrivo</h2>
         </div>
 
-        <div class="races-grid" *ngIf="upcomingRaces$ | async as races">
-            <article *ngFor="let race of races" class="race-card">
-                <div class="card-header">
-                    <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
-                    <span class="status-indicator upcoming">IN ARRIVO</span>
-                </div>
-
-                <div class="card-body">
-                    <h3 class="race-title">{{ race.title }}</h3>
-                    <p class="race-track" *ngIf="race.trackName">
-                        <strong>Tracciato:</strong> {{ race.trackName }}
-                    </p>
-                    <p class="race-desc">{{ race.description }}</p>
-                    <div class="race-dates">
-                        <span>Data Inizio: {{ race.startDate }}</span>
+        <ng-container *ngIf="upcomingRaces$ | async as races">
+            <div class="races-grid" *ngIf="races.length > 0; else noUpcoming">
+                <article *ngFor="let race of races" class="race-card">
+                    <div class="card-header">
+                        <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
+                        <span class="status-indicator upcoming">IN ARRIVO</span>
                     </div>
-                </div>
 
-                <div class="card-footer">
-                    <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
-                        rel="noopener noreferrer" class="btn btn-outline full-width">
-                        Pre-Iscriviti
-                    </a>
+                    <div class="card-body">
+                        <h3 class="race-title">{{ race.title }}</h3>
+                        <p class="race-track" *ngIf="race.trackName">
+                            <strong>Tracciato:</strong> {{ race.trackName }}
+                        </p>
+                        <p class="race-desc">{{ race.description }}</p>
+                        <div class="race-dates">
+                            <span>Data Inizio: {{ race.startDate }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <a *ngIf="race.registrationUrl" [href]="race.registrationUrl" target="_blank"
+                            rel="noopener noreferrer" class="btn btn-outline full-width">
+                            Pre-Iscriviti
+                        </a>
+                    </div>
+                </article>
+            </div>
+            <ng-template #noUpcoming>
+                <div class="empty-section">
+                    <p>Nessun evento in programma al momento. Resta connesso sui nostri canali!</p>
                 </div>
-            </article>
-        </div>
+            </ng-template>
+        </ng-container>
     </section>
 </div>

@@ -8,10 +8,13 @@ import {
   user,
   User,
 } from '@angular/fire/auth';
-import { Observable } from 'rxjs';
+// Importati direttamente da 'firebase/auth' per evitare il wrapper Zone di @angular/fire su browserSessionPersistence
+import { setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { Observable, firstValueFrom, map } from 'rxjs';
 import { ImageUploadService } from '../../services/image-upload.service';
 import { RaceService } from '../../services/race.service';
-import { GameType, Race, RaceStatus } from '../../models/race.model';
+import { Race, RaceStatus } from '../../models/race.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin',
@@ -26,24 +29,18 @@ export class AdminComponent implements OnInit {
   private raceService = inject(RaceService);
 
   user$: Observable<User | null> = user(this.auth);
+  races$!: Observable<Race[]>;
 
   // Credenziali Login
   email = '';
   password = '';
   loginError = '';
 
+  // Stato modifica evento esistente
+  editingRaceId: string | null = null;
+
   // Form Gara / Risultati
-  newRace: Race = {
-    title: '',
-    game: 'EA WRC',
-    status: 'upcoming',
-    startDate: '',
-    endDate: '',
-    trackName: '',
-    registrationUrl: '',
-    description: '',
-    resultsImageUrl: '',
-  };
+  newRace: Race = this.createEmptyRace();
 
   selectedFile: File | null = null;
   imagePreview: string | null = null;
@@ -51,15 +48,44 @@ export class AdminComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Elenco live di tutte le gare per modifica ed eliminazione
+    this.races$ = this.raceService
+      .getAllRaces()
+      .pipe(
+        map((races) =>
+          [...races].sort((a, b) => b.startDate.localeCompare(a.startDate)),
+        ),
+      );
+  }
 
   // Autenticazione
   async onLogin(): Promise<void> {
     this.loginError = '';
+    const cleanEmail = this.email.trim();
     try {
-      await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      // Imposta la sessione valida solo fino alla chiusura della scheda/finestra
+      await setPersistence(this.auth, browserSessionPersistence);
+
+      await signInWithEmailAndPassword(this.auth, cleanEmail, this.password);
     } catch (err: any) {
-      this.loginError = 'Credenziali non valide o utente non autorizzato.';
+      console.error('Dettaglio errore login Firebase:', err);
+      const code = err?.code || 'errore-sconosciuto';
+      switch (code) {
+        case 'auth/invalid-credential':
+        case 'auth/wrong-password':
+        case 'auth/user-not-found':
+          this.loginError = `Email o password errati (${code}).`;
+          break;
+        case 'auth/too-many-requests':
+          this.loginError = `Troppi tentativi falliti: account temporaneamente bloccato. Attendi qualche minuto (${code}).`;
+          break;
+        case 'auth/operation-not-allowed':
+          this.loginError = `Accesso Email/Password non abilitato su Firebase (${code}).`;
+          break;
+        default:
+          this.loginError = `Errore accesso [${code}]: ${err?.message || 'Errore sconosciuto'}`;
+      }
     }
   }
 
@@ -82,7 +108,57 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  // Salvataggio Gara
+  // Carica una gara esistente nel form per modificarla
+  editRace(race: Race): void {
+    if (!race.id) return;
+    this.editingRaceId = race.id;
+    this.newRace = {
+      title: race.title || '',
+      game: race.game || 'EA WRC',
+      status: race.status || 'upcoming',
+      startDate: race.startDate || '',
+      endDate: race.endDate || '',
+      trackName: race.trackName || '',
+      registrationUrl: race.registrationUrl || '',
+      description: race.description || '',
+      resultsImageUrl: race.resultsImageUrl || '',
+    };
+    this.selectedFile = null;
+    this.imagePreview = race.resultsImageUrl || null;
+    this.successMessage = '';
+    this.errorMessage = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
+    this.successMessage = '';
+    this.errorMessage = '';
+  }
+
+  // Elimina gara da Firestore
+  async deleteRace(race: Race): Promise<void> {
+    if (!race.id) return;
+    const confirmed = window.confirm(
+      `Vuoi davvero eliminare "${race.title}"? L'operazione non è reversibile.`,
+    );
+    if (!confirmed) return;
+
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      await this.raceService.deleteRace(race.id);
+      if (this.editingRaceId === race.id) {
+        this.resetForm();
+      }
+      this.successMessage = `Evento "${race.title}" eliminato con successo.`;
+    } catch (error: any) {
+      console.error('Errore eliminazione gara:', error);
+      this.errorMessage = `Errore durante l'eliminazione: ${error?.message || 'riprova.'}`;
+    }
+  }
+
+  // Salvataggio (creazione o aggiornamento) Gara
   async onSubmit(): Promise<void> {
     this.errorMessage = '';
     this.successMessage = '';
@@ -91,26 +167,53 @@ export class AdminComponent implements OnInit {
     try {
       // 1. Se c'è un file selezionato, caricalo su ImgBB
       if (this.selectedFile) {
-        const uploadedUrl = await this.imageUploadService
-          .uploadImage(this.selectedFile)
-          .toPromise();
+        if (
+          !environment.imgbbApiKey ||
+          environment.imgbbApiKey === 'LA_TUA_IMGBB_API_KEY'
+        ) {
+          throw new Error(
+            'Chiave ImgBB non ancora configurata negli environment. Inserisci la chiave ImgBB oppure incolla direttamente un URL immagine.',
+          );
+        }
+        const uploadedUrl = await firstValueFrom(
+          this.imageUploadService.uploadImage(this.selectedFile),
+        );
         this.newRace.resultsImageUrl = uploadedUrl;
       }
 
-      // 2. Salva la gara su Firestore
-      await this.raceService.addRace(this.newRace);
+      // 2. Crea o aggiorna su Firestore
+      const payload: Race = { ...this.newRace };
+      if (this.editingRaceId) {
+        await this.raceService.updateRace(this.editingRaceId, payload);
+        this.successMessage = 'Evento aggiornato con successo!';
+      } else {
+        await this.raceService.addRace(payload);
+        this.successMessage = 'Evento / Risultato pubblicato con successo!';
+      }
 
-      this.successMessage = 'Evento / Risultato pubblicato con successo!';
       this.resetForm();
-    } catch (error) {
-      this.errorMessage = 'Errore durante la pubblicazione. Riprova.';
+    } catch (error: any) {
+      console.error('Errore salvataggio gara:', error);
+      this.errorMessage =
+        error?.message || 'Errore durante la pubblicazione. Riprova.';
     } finally {
       this.isUploading = false;
     }
   }
 
-  private resetForm(): void {
-    this.newRace = {
+  getStatusLabel(status: RaceStatus): string {
+    switch (status) {
+      case 'ongoing':
+        return 'IN CORSO';
+      case 'upcoming':
+        return 'IN ARRIVO';
+      case 'completed':
+        return 'CONCLUSA';
+    }
+  }
+
+  private createEmptyRace(): Race {
+    return {
       title: '',
       game: 'EA WRC',
       status: 'upcoming',
@@ -121,6 +224,11 @@ export class AdminComponent implements OnInit {
       description: '',
       resultsImageUrl: '',
     };
+  }
+
+  private resetForm(): void {
+    this.editingRaceId = null;
+    this.newRace = this.createEmptyRace();
     this.selectedFile = null;
     this.imagePreview = null;
   }

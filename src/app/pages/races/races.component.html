@@ -11,13 +11,13 @@
         <div class="filter-group">
             <span class="filter-label">Disciplina:</span>
             <div class="filter-buttons">
-                <button class="pill-btn" [class.active]="selectedGame === 'ALL'" (click)="setGame('ALL')">Tutti i
+                <button class="pill-btn" [class.active]="currentSelectedGame === 'ALL'" (click)="setGame('ALL')">Tutti i
                     Giochi</button>
-                <button class="pill-btn" [class.active]="selectedGame === 'EA WRC'" (click)="setGame('EA WRC')">EA
+                <button class="pill-btn" [class.active]="currentSelectedGame === 'EA WRC'" (click)="setGame('EA WRC')">EA
                     WRC</button>
-                <button class="pill-btn" [class.active]="selectedGame === 'Forza Motorsport'"
+                <button class="pill-btn" [class.active]="currentSelectedGame === 'Forza Motorsport'"
                     (click)="setGame('Forza Motorsport')">Forza Motorsport</button>
-                <button class="pill-btn" [class.active]="selectedGame === 'MotoGP 26'"
+                <button class="pill-btn" [class.active]="currentSelectedGame === 'MotoGP 26'"
                     (click)="setGame('MotoGP 26')">MotoGP 26</button>
             </div>
         </div>
@@ -26,61 +26,63 @@
         <div class="filter-group">
             <span class="filter-label">Stato:</span>
             <div class="filter-buttons">
-                <button class="pill-btn" [class.active]="selectedStatus === 'ALL'"
+                <button class="pill-btn" [class.active]="currentSelectedStatus === 'ALL'"
                     (click)="setStatus('ALL')">Tutte</button>
-                <button class="pill-btn" [class.active]="selectedStatus === 'ongoing'" (click)="setStatus('ongoing')">In
+                <button class="pill-btn" [class.active]="currentSelectedStatus === 'ongoing'" (click)="setStatus('ongoing')">In
                     Corso</button>
-                <button class="pill-btn" [class.active]="selectedStatus === 'upcoming'"
+                <button class="pill-btn" [class.active]="currentSelectedStatus === 'upcoming'"
                     (click)="setStatus('upcoming')">In Arrivo</button>
-                <button class="pill-btn" [class.active]="selectedStatus === 'completed'"
+                <button class="pill-btn" [class.active]="currentSelectedStatus === 'completed'"
                     (click)="setStatus('completed')">Concluse</button>
             </div>
         </div>
     </div>
 
     <!-- Elenco Gare -->
-    <div class="races-list" *ngIf="filteredRaces.length > 0; else noRaces">
-        <article *ngFor="let race of filteredRaces" class="race-item-card" [ngClass]="'status-' + race.status">
-            <div class="card-main">
-                <div class="card-top-row">
-                    <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
-                    <span class="status-badge" [ngClass]="race.status">{{ getStatusLabel(race.status) }}</span>
-                </div>
-
-                <h2 class="race-title">{{ race.title }}</h2>
-
-                <div class="race-details">
-                    <div class="detail-line" *ngIf="race.trackName">
-                        <span class="detail-icon">📍</span>
-                        <span><strong>Tracciato:</strong> {{ race.trackName }}</span>
+    <ng-container *ngIf="filteredRaces$ | async as races">
+        <div class="races-list" *ngIf="races.length > 0; else noRaces">
+            <article *ngFor="let race of races" class="race-item-card" [ngClass]="'status-' + race.status">
+                <div class="card-main">
+                    <div class="card-top-row">
+                        <span class="game-badge" [ngClass]="getGameBadgeClass(race.game)">{{ race.game }}</span>
+                        <span class="status-badge" [ngClass]="race.status">{{ getStatusLabel(race.status) }}</span>
                     </div>
 
-                    <div class="detail-line">
-                        <span class="detail-icon">📅</span>
-                        <span><strong>Data:</strong> {{ race.startDate }} <ng-container *ngIf="race.endDate">&rarr; {{
-                                race.endDate }}</ng-container></span>
+                    <h2 class="race-title">{{ race.title }}</h2>
+
+                    <div class="race-details">
+                        <div class="detail-line" *ngIf="race.trackName">
+                            <span class="detail-icon">📍</span>
+                            <span><strong>Tracciato:</strong> {{ race.trackName }}</span>
+                        </div>
+
+                        <div class="detail-line">
+                            <span class="detail-icon">📅</span>
+                            <span><strong>Data:</strong> {{ race.startDate }} <ng-container *ngIf="race.endDate">&rarr; {{
+                                    race.endDate }}</ng-container></span>
+                        </div>
                     </div>
+
+                    <p class="race-desc" *ngIf="race.description">{{ race.description }}</p>
                 </div>
 
-                <p class="race-desc" *ngIf="race.description">{{ race.description }}</p>
-            </div>
+                <div class="card-action">
+                    <a *ngIf="race.status !== 'completed' && race.registrationUrl" [href]="race.registrationUrl"
+                        target="_blank" rel="noopener noreferrer" class="btn btn-accent full-width">
+                        {{ race.status === 'ongoing' ? 'Iscriviti alla Tappa' : 'Pre-Iscriviti' }}
+                    </a>
 
-            <div class="card-action">
-                <a *ngIf="race.status !== 'completed' && race.registrationUrl" [href]="race.registrationUrl"
-                    target="_blank" rel="noopener noreferrer" class="btn btn-accent full-width">
-                    {{ race.status === 'ongoing' ? 'Iscriviti alla Tappa' : 'Pre-Iscriviti' }}
-                </a>
-
-                <a *ngIf="race.status === 'completed'" routerLink="/gallery" class="btn btn-outline full-width">
-                    Vedi Classifica & Podio
-                </a>
-            </div>
-        </article>
-    </div>
-
-    <ng-template #noRaces>
-        <div class="empty-races">
-            <p>Nessun evento corrisponde ai filtri selezionati.</p>
+                    <a *ngIf="race.status === 'completed'" routerLink="/gallery" class="btn btn-outline full-width">
+                        Vedi Classifica & Podio
+                    </a>
+                </div>
+            </article>
         </div>
-    </ng-template>
+
+        <ng-template #noRaces>
+            <div class="empty-races">
+                <p>Nessun evento corrisponde ai filtri selezionati.</p>
+            </div>
+        </ng-template>
+    </ng-container>
 </div>

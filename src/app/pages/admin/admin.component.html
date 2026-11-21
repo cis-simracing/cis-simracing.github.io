@@ -34,7 +34,7 @@
             <div class="dashboard-header">
                 <div>
                     <span class="badge-staff">PANNELLO DI CONTROLLO</span>
-                    <h1>Pubblica Gara o Risultato</h1>
+                    <h1>{{ editingRaceId ? 'Modifica Evento' : 'Pubblica Gara o Risultato' }}</h1>
                 </div>
                 <button (click)="onLogout()" class="btn btn-logout">Disconnetti</button>
             </div>
@@ -111,23 +111,63 @@
 
                 <!-- Riquadro Foto / Risultati ImgBB -->
                 <div class="form-section">
-                    <h3>2. Immagine Risultati / Podio (ImgBB Upload)</h3>
+                    <h3>2. Immagine Risultati / Podio (ImgBB Upload o URL)</h3>
 
                     <div class="form-group">
-                        <label for="imageFile">Seleziona Screenshot Classifica o Foto Evento</label>
+                        <label for="imageFile">Carica Screenshot Classifica o Foto Evento (ImgBB)</label>
                         <input type="file" id="imageFile" (change)="onFileSelected($event)" accept="image/*" />
                     </div>
 
-                    <div class="preview-box" *ngIf="imagePreview">
+                    <div class="form-group">
+                        <label for="resultsImageUrl">Oppure incolla URL diretto immagine</label>
+                        <input type="url" id="resultsImageUrl" [(ngModel)]="newRace.resultsImageUrl"
+                            name="resultsImageUrl" placeholder="https://i.ibb.co/..." />
+                    </div>
+
+                    <div class="preview-box" *ngIf="imagePreview || newRace.resultsImageUrl">
                         <p>Anteprima Immagine:</p>
-                        <img [src]="imagePreview" alt="Anteprima upload" />
+                        <img [src]="imagePreview || newRace.resultsImageUrl" alt="Anteprima upload" />
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-accent btn-submit" [disabled]="isUploading">
-                    {{ isUploading ? 'Caricamento in corso...' : 'Salva e Pubblica' }}
-                </button>
+                <div class="form-actions">
+                    <button *ngIf="editingRaceId" type="button" (click)="cancelEdit()" class="btn btn-cancel">
+                        Annulla Modifica
+                    </button>
+                    <button type="submit" class="btn btn-accent btn-submit" [disabled]="isUploading">
+                        {{ isUploading ? 'Salvataggio in corso...' : (editingRaceId ? 'Salva Modifiche' : 'Salva e Pubblica') }}
+                    </button>
+                </div>
             </form>
+
+            <!-- Elenco Gare Pubblicate su Firestore -->
+            <section class="races-manage-section">
+                <h2>Eventi Pubblicati su Firestore</h2>
+
+                <ng-container *ngIf="races$ | async as races">
+                    <div class="manage-list" *ngIf="races.length > 0; else noManagedRaces">
+                        <div *ngFor="let race of races" class="manage-item" [class.editing]="editingRaceId === race.id">
+                            <div class="manage-info">
+                                <div class="manage-meta">
+                                    <span class="tag-game">{{ race.game }}</span>
+                                    <span class="tag-status" [ngClass]="race.status">{{ getStatusLabel(race.status) }}</span>
+                                    <span class="tag-date">{{ race.startDate }}</span>
+                                </div>
+                                <h4>{{ race.title }}</h4>
+                                <p *ngIf="race.trackName">{{ race.trackName }}</p>
+                            </div>
+                            <div class="manage-actions">
+                                <button type="button" (click)="editRace(race)" class="btn btn-edit">Modifica</button>
+                                <button type="button" (click)="deleteRace(race)" class="btn btn-delete">Elimina</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ng-template #noManagedRaces>
+                        <p class="empty-manage">Nessun evento ancora salvato su Firestore. Usa il modulo sopra per crearne uno!</p>
+                    </ng-template>
+                </ng-container>
+            </section>
         </div>
     </ng-template>
 </div>
