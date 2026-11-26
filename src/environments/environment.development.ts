@@ -8,5 +8,5 @@ export const environment = {
     messagingSenderId: '202681242567',
     appId: '1:202681242567:web:5036ff38765e76bf60ffe2',
   },
-  imgbbApiKey: 'LA_TUA_IMGBB_API_KEY',
+  imgbbApiKey: '7db40e984540498c776e03aa7a60cb3c',
 };
